@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -83,7 +84,7 @@ func renestCommand(nestFilePath string) error {
 	return nil
 }
 
-func addToNestCommand(nestFilePath string, data string) error {
+func addNoteToNestCommand(nestFilePath string, note string) error {
 	// Open the nest file
 	nestFile, err := os.OpenFile(nestFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -91,9 +92,9 @@ func addToNestCommand(nestFilePath string, data string) error {
 	}
 	defer nestFile.Close()
 
-	// Append timestamped data to the nest file
+	// Append timestamped note to the nest file
 	timestamp := time.Now().Format(time.TimeOnly)
-	if _, err := nestFile.WriteString(timestamp + "  " + data + "\n"); err != nil {
+	if _, err := nestFile.WriteString(timestamp + "  " + note + "\n"); err != nil {
 		return fmt.Errorf("ERROR: Unable to append the nest file: %w", err)
 	}
 
@@ -113,24 +114,28 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(args.posArgs) != 1 {
+	if len(args.posArgs) == 0 {
 		flag.Usage()
 		os.Exit(2)
 	}
 
+	// Create or retrieve the path to the nest file
 	nestFilePath, err := createNest()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
-	switch args.posArgs[0] {
+	// Unquoted words in positional arguments form a single note
+	noteOrCommand := strings.Join(args.posArgs, " ")
+
+	switch noteOrCommand {
 	case "nest":
 		err = nestCommand(nestFilePath)
 	case "renest":
 		err = renestCommand(nestFilePath)
 	default:
-		err = addToNestCommand(nestFilePath, args.posArgs[0])
+		err = addNoteToNestCommand(nestFilePath, noteOrCommand)
 	}
 
 	if err != nil {
