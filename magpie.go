@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const VERSION = "v0.1.0"
+const VERSION = "v0.1.1"
 
 type arguments struct {
 	help    bool
@@ -46,16 +46,18 @@ func createNest() (string, error) {
 	// Create magpie dir, where the nest files will be stored
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", errors.New("ERROR: Unable to get user's home directory.")
+		return "", fmt.Errorf("ERROR: Unable to get user's home directory: %w", err)
 	}
 	magpieDir := home + "/.magpie/"
-	os.MkdirAll(magpieDir, 0755)
+	if err := os.MkdirAll(magpieDir, 0755); err != nil {
+		return "", fmt.Errorf("ERROR: Unable to create magpie directory: %w", err)
+	}
 
 	// Create today's nest file in the magpie dir if it doesn't exist already
 	nestFilePath := magpieDir + time.Now().Format(time.DateOnly) + "-nest.md"
 	nestFile, err := os.OpenFile(nestFilePath, os.O_CREATE|os.O_RDONLY, 0644)
 	if err != nil {
-		return "", errors.New("ERROR: Unable to create/open nest file.")
+		return "", fmt.Errorf("ERROR: Unable to create/open nest file: %w", err)
 	}
 	nestFile.Close()
 
@@ -66,7 +68,7 @@ func nestCommand(nestFilePath string) error {
 	// Print the contents of the nest file
 	content, err := os.ReadFile(nestFilePath)
 	if err != nil {
-		return errors.New("ERROR: Unable to read nest file.")
+		return fmt.Errorf("ERROR: Unable to read nest file: %w", err)
 	}
 	fmt.Print(string(content))
 	return nil
@@ -76,7 +78,7 @@ func renestCommand(nestFilePath string) error {
 	// Delete the nest file
 	err := os.Remove(nestFilePath)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return errors.New("ERROR: Unable to delete nest file.")
+		return fmt.Errorf("ERROR: Unable to delete nest file: %w", err)
 	}
 	return nil
 }
@@ -85,14 +87,14 @@ func addToNestCommand(nestFilePath string, data string) error {
 	// Open the nest file
 	nestFile, err := os.OpenFile(nestFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return errors.New("ERROR: Unable to open the nest file.")
+		return fmt.Errorf("ERROR: Unable to open the nest file: %w", err)
 	}
 	defer nestFile.Close()
 
 	// Append timestamped data to the nest file
 	timestamp := time.Now().Format(time.TimeOnly)
 	if _, err := nestFile.WriteString(timestamp + "  " + data + "\n"); err != nil {
-		return errors.New("ERROR: Unable to append the nest file.")
+		return fmt.Errorf("ERROR: Unable to append the nest file: %w", err)
 	}
 
 	return nil
@@ -118,17 +120,21 @@ func main() {
 
 	nestFilePath, err := createNest()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
 	switch args.posArgs[0] {
 	case "nest":
-		nestCommand(nestFilePath)
+		err = nestCommand(nestFilePath)
 	case "renest":
-		renestCommand(nestFilePath)
+		err = renestCommand(nestFilePath)
 	default:
-		addToNestCommand(nestFilePath, args.posArgs[0])
+		err = addToNestCommand(nestFilePath, args.posArgs[0])
 	}
 
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
