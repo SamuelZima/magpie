@@ -50,13 +50,13 @@ func createNest() (string, error) {
 		return "", fmt.Errorf("ERROR: Unable to get user's home directory: %w", err)
 	}
 	magpieDir := home + "/.magpie/"
-	if err := os.MkdirAll(magpieDir, 0755); err != nil {
+	if err := os.MkdirAll(magpieDir, 0700); err != nil {
 		return "", fmt.Errorf("ERROR: Unable to create magpie directory: %w", err)
 	}
 
 	// Create today's nest file in the magpie dir if it doesn't exist already
-	nestFilePath := magpieDir + time.Now().Format(time.DateOnly) + "-nest.md"
-	nestFile, err := os.OpenFile(nestFilePath, os.O_CREATE|os.O_RDONLY, 0644)
+	nestFilePath := magpieDir + time.Now().Format(time.DateOnly) + "-nest.txt"
+	nestFile, err := os.OpenFile(nestFilePath, os.O_CREATE|os.O_RDONLY, 0600)
 	if err != nil {
 		return "", fmt.Errorf("ERROR: Unable to create/open nest file: %w", err)
 	}
@@ -66,11 +66,17 @@ func createNest() (string, error) {
 }
 
 func nestCommand(nestFilePath string) error {
-	// Print the contents of the nest file
+	// Read the nest file and print its contents, if it's not empty
 	content, err := os.ReadFile(nestFilePath)
 	if err != nil {
 		return fmt.Errorf("ERROR: Unable to read nest file: %w", err)
 	}
+
+	if len(content) == 0 {
+		fmt.Println("No shiny notes in the nest yet. Add a note with: magpie <note>")
+		return nil
+	}
+
 	fmt.Print(string(content))
 	return nil
 }
@@ -86,7 +92,7 @@ func renestCommand(nestFilePath string) error {
 
 func addNoteToNestCommand(nestFilePath string, note string) error {
 	// Open the nest file
-	nestFile, err := os.OpenFile(nestFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	nestFile, err := os.OpenFile(nestFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("ERROR: Unable to open the nest file: %w", err)
 	}
