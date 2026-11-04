@@ -29,19 +29,18 @@ func parseArgs() arguments {
 
 	flag.Usage = func() {
 		out := flag.CommandLine.Output()
-		fmt.Fprintf(out, "magpie - collects your shiny thoughts, ideas or notes into a daily nest file.\n\n")
+		fmt.Fprintf(out, "magpie - collects your shiny thoughts into a daily nest.\n\n")
 		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <note>|pluck|nest|renest|nests|abandon\n\n")
 		fmt.Fprintf(out, "Commands:\n")
-		fmt.Fprintf(out, "\t<note>\t\tNote, thought or idea which you want to save\n")
-		fmt.Fprintf(out, "\tpluck\t\tDeletes the last note from the daily nest\n")
-		fmt.Fprintf(out, "\tnest\t\tPrints notes from the daily nest\n")
-		fmt.Fprintf(out, "\trenest\t\tDeletes current nest file and all its contents\n")
-		fmt.Fprintf(out, "\tnests\t\tPrints all notes from all existing nest files\n")
-		fmt.Fprintf(out, "\tabandon\t\tDeletes all nest files and all their contents\n\n")
+		fmt.Fprintf(out, "\t<note>\t\tSave a note, thought or idea to today's nest file\n")
+		fmt.Fprintf(out, "\tpluck\t\tDelete the last note from today's nest\n")
+		fmt.Fprintf(out, "\tnest\t\tPrint notes from today's nest\n")
+		fmt.Fprintf(out, "\trenest\t\tDelete today's nest file and all its contents\n")
+		fmt.Fprintf(out, "\tnests\t\tPrint notes from all existing nest files\n")
+		fmt.Fprintf(out, "\tabandon\t\tDelete all nest files and all their contents\n\n")
 		fmt.Fprintf(out, "Options:\n")
-		fmt.Fprintf(out, "\t-h, --help\tPrints this help message\n")
-		fmt.Fprintf(out, "\t-v, --version\tPrints version\n")
-		fmt.Fprintf(out, "\t-v, --version\tPrints version\n")
+		fmt.Fprintf(out, "\t-h, --help\tPrint this help message\n")
+		fmt.Fprintf(out, "\t-v, --version\tPrint version\n")
 	}
 
 	flag.Parse()
@@ -147,6 +146,8 @@ func renestCommand(nestFilePath string) error {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("ERROR: Unable to delete nest file: %w", err)
 	}
+
+	fmt.Println("Renested.")
 	return nil
 }
 
