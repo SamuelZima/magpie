@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"flag"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 	"time"
 )
 
-const VERSION = "v0.1.1"
+const VERSION = "v0.5.0"
 
 type arguments struct {
 	help    bool
@@ -29,7 +30,7 @@ func parseArgs() arguments {
 	flag.Usage = func() {
 		out := flag.CommandLine.Output()
 		fmt.Fprintf(out, "magpie - collects your shiny thoughts, ideas or notes into a daily nest file.\n\n")
-		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <string>|nest|nests|renest\n\n")
+		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <string>|nest|nests|renest|abandon\n\n")
 		fmt.Fprintf(out, "Options:\n")
 		fmt.Fprintf(out, "\t-h, --help\tShow this help message\n")
 		fmt.Fprintf(out, "\t-v, --version\tShow version\n")
@@ -37,12 +38,32 @@ func parseArgs() arguments {
 		fmt.Fprintf(out, "\tnest\t\tPrints the daily nest containing all your thoughts, notes or ideas\n")
 		fmt.Fprintf(out, "\tnests\t\tPrints all notes from all existing nest files\n")
 		fmt.Fprintf(out, "\trenest\t\tDeletes current nest file and all its contents\n")
+		fmt.Fprintf(out, "\tabandon\t\tDeletes all nest files and all their contents\n")
 	}
 
 	flag.Parse()
 	args.posArgs = flag.Args()
 
 	return args
+}
+
+func confirm(prompt string) bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	// Prompt user for input
+	fmt.Printf("%s [y/N]: ", prompt)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return false
+	}
+
+	// Evaluate input -> only explicit yes evaluates to true
+	switch strings.ToLower(strings.TrimSpace(input)) {
+	case "y", "yes":
+		return true
+	default:
+		return false
+	}
 }
 
 func createOrRetrieveNest() (string, error) {
@@ -121,6 +142,30 @@ func renestCommand(nestFilePath string) error {
 	return nil
 }
 
+func abandonCommand(nestFilePath string) error {
+	if !confirm("This action will delete all nest files. Proceed?") {
+		fmt.Println("Aborted. All nests kept.")
+		return nil
+	}
+
+	// Get all nest files
+	paths, err := filepath.Glob(filepath.Join(filepath.Dir(nestFilePath), "*-nest.txt"))
+	if err != nil {
+		return fmt.Errorf("ERROR: Unable to list nest files: %w", err)
+	}
+
+	// Delete every nest file
+	for _, path := range paths {
+		err := os.Remove(path)
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("ERROR: Unable to delete nest file: %w", err)
+		}
+	}
+
+	fmt.Println("All nests abandoned.")
+	return nil
+}
+
 func addNoteToNestCommand(nestFilePath string, note string) error {
 	// Open the nest file
 	nestFile, err := os.OpenFile(nestFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
@@ -173,6 +218,8 @@ func main() {
 		err = nestsCommand(nestFilePath)
 	case "renest":
 		err = renestCommand(nestFilePath)
+	case "abandon":
+		err = abandonCommand(nestFilePath)
 	default:
 		err = addNoteToNestCommand(nestFilePath, noteOrCommand)
 	}
