@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const VERSION = "v0.5.0"
+const VERSION = "v0.6.0"
 
 type arguments struct {
 	help    bool
@@ -30,7 +30,7 @@ func parseArgs() arguments {
 	flag.Usage = func() {
 		out := flag.CommandLine.Output()
 		fmt.Fprintf(out, "magpie - collects your shiny thoughts, ideas or notes into a daily nest file.\n\n")
-		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <string>|nest|nests|renest|abandon\n\n")
+		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <string>|nest|nests|renest|abandon|pluck\n\n")
 		fmt.Fprintf(out, "Options:\n")
 		fmt.Fprintf(out, "\t-h, --help\tShow this help message\n")
 		fmt.Fprintf(out, "\t-v, --version\tShow version\n")
@@ -39,6 +39,7 @@ func parseArgs() arguments {
 		fmt.Fprintf(out, "\tnests\t\tPrints all notes from all existing nest files\n")
 		fmt.Fprintf(out, "\trenest\t\tDeletes current nest file and all its contents\n")
 		fmt.Fprintf(out, "\tabandon\t\tDeletes all nest files and all their contents\n")
+		fmt.Fprintf(out, "\tpluck\t\tRemoves the last note from the daily nest\n")
 	}
 
 	flag.Parse()
@@ -166,6 +167,27 @@ func abandonCommand(nestFilePath string) error {
 	return nil
 }
 
+func pluckCommand(nestFilePath string) error {
+	// Read nest file
+	content, err := os.ReadFile(nestFilePath)
+	if err != nil {
+		return fmt.Errorf("ERROR: Unable to read nest file: %w", err)
+	}
+
+	if len(content) == 0 {
+		fmt.Println("No shiny notes in the nest to pluck. Add a note with: magpie <note>")
+		return nil
+	}
+
+	// Keep everything up to and including the newline before the last note, i.e. remove only last line/note from file
+	trimmed := strings.TrimSuffix(string(content), "\n")
+	kept := trimmed[:strings.LastIndex(trimmed, "\n")+1]
+	if err := os.WriteFile(nestFilePath, []byte(kept), 0600); err != nil {
+		return fmt.Errorf("ERROR: Unable to write nest file: %w", err)
+	}
+	return nil
+}
+
 func addNoteToNestCommand(nestFilePath string, note string) error {
 	// Open the nest file
 	nestFile, err := os.OpenFile(nestFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
@@ -220,6 +242,8 @@ func main() {
 		err = renestCommand(nestFilePath)
 	case "abandon":
 		err = abandonCommand(nestFilePath)
+	case "pluck":
+		err = pluckCommand(nestFilePath)
 	default:
 		err = addNoteToNestCommand(nestFilePath, noteOrCommand)
 	}
