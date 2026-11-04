@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -28,12 +29,13 @@ func parseArgs() arguments {
 	flag.Usage = func() {
 		out := flag.CommandLine.Output()
 		fmt.Fprintf(out, "magpie - collects your shiny thoughts, ideas or notes into a daily nest file.\n\n")
-		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <string>|nest|renest\n\n")
+		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <string>|nest|nests|renest\n\n")
 		fmt.Fprintf(out, "Options:\n")
 		fmt.Fprintf(out, "\t-h, --help\tShow this help message\n")
 		fmt.Fprintf(out, "\t-v, --version\tShow version\n")
 		fmt.Fprintf(out, "\t<string>\tThought, note or idea which you want to save\n")
 		fmt.Fprintf(out, "\tnest\t\tPrints the daily nest containing all your thoughts, notes or ideas\n")
+		fmt.Fprintf(out, "\tnests\t\tPrints all notes from all existing nest files\n")
 		fmt.Fprintf(out, "\trenest\t\tDeletes current nest file and all its contents\n")
 	}
 
@@ -43,7 +45,7 @@ func parseArgs() arguments {
 	return args
 }
 
-func createNest() (string, error) {
+func createOrRetrieveNest() (string, error) {
 	// Create magpie dir, where the nest files will be stored
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -78,6 +80,35 @@ func nestCommand(nestFilePath string) error {
 	}
 
 	fmt.Print(string(content))
+	return nil
+}
+
+func nestsCommand(nestFilePath string) error {
+	// Get all nest files
+	paths, err := filepath.Glob(filepath.Join(filepath.Dir(nestFilePath), "*-nest.txt"))
+	if err != nil {
+		return fmt.Errorf("ERROR: Unable to list nest files: %w", err)
+	}
+
+	found := false
+
+	// For every nest file print its date and its contents
+	for _, path := range paths {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("ERROR: Unable to read nest file: %w", err)
+		}
+		if len(content) == 0 {
+			continue
+		}
+		found = true
+		fmt.Printf("======== %s ========\n%s\n", strings.TrimSuffix(filepath.Base(path), "-nest.txt"), content)
+	}
+
+	// If no nests are found, print message
+	if !found {
+		fmt.Println("No shiny notes in any nest yet. Add a note with: magpie <note>")
+	}
 	return nil
 }
 
@@ -126,7 +157,7 @@ func main() {
 	}
 
 	// Create or retrieve the path to the nest file
-	nestFilePath, err := createNest()
+	nestFilePath, err := createOrRetrieveNest()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -138,6 +169,8 @@ func main() {
 	switch noteOrCommand {
 	case "nest":
 		err = nestCommand(nestFilePath)
+	case "nests":
+		err = nestsCommand(nestFilePath)
 	case "renest":
 		err = renestCommand(nestFilePath)
 	default:
