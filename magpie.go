@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const VERSION = "v0.6.0"
+const VERSION = "v0.7.0"
 
 type arguments struct {
 	help    bool
@@ -30,16 +30,18 @@ func parseArgs() arguments {
 	flag.Usage = func() {
 		out := flag.CommandLine.Output()
 		fmt.Fprintf(out, "magpie - collects your shiny thoughts, ideas or notes into a daily nest file.\n\n")
-		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <string>|nest|nests|renest|abandon|pluck\n\n")
-		fmt.Fprintf(out, "Options:\n")
-		fmt.Fprintf(out, "\t-h, --help\tShow this help message\n")
-		fmt.Fprintf(out, "\t-v, --version\tShow version\n")
-		fmt.Fprintf(out, "\t<string>\tThought, note or idea which you want to save\n")
-		fmt.Fprintf(out, "\tnest\t\tPrints the daily nest containing all your thoughts, notes or ideas\n")
-		fmt.Fprintf(out, "\tnests\t\tPrints all notes from all existing nest files\n")
+		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <note>|pluck|nest|renest|nests|abandon\n\n")
+		fmt.Fprintf(out, "Commands:\n")
+		fmt.Fprintf(out, "\t<note>\t\tNote, thought or idea which you want to save\n")
+		fmt.Fprintf(out, "\tpluck\t\tDeletes the last note from the daily nest\n")
+		fmt.Fprintf(out, "\tnest\t\tPrints notes from the daily nest\n")
 		fmt.Fprintf(out, "\trenest\t\tDeletes current nest file and all its contents\n")
-		fmt.Fprintf(out, "\tabandon\t\tDeletes all nest files and all their contents\n")
-		fmt.Fprintf(out, "\tpluck\t\tRemoves the last note from the daily nest\n")
+		fmt.Fprintf(out, "\tnests\t\tPrints all notes from all existing nest files\n")
+		fmt.Fprintf(out, "\tabandon\t\tDeletes all nest files and all their contents\n\n")
+		fmt.Fprintf(out, "Options:\n")
+		fmt.Fprintf(out, "\t-h, --help\tPrints this help message\n")
+		fmt.Fprintf(out, "\t-v, --version\tPrints version\n")
+		fmt.Fprintf(out, "\t-v, --version\tPrints version\n")
 	}
 
 	flag.Parse()
@@ -97,7 +99,7 @@ func nestCommand(nestFilePath string) error {
 	}
 
 	if len(content) == 0 {
-		fmt.Println("No shiny notes in the nest yet. Add a note with: magpie <note>")
+		fmt.Println("No shiny notes in the nest yet.")
 		return nil
 	}
 
@@ -129,12 +131,17 @@ func nestsCommand(nestFilePath string) error {
 
 	// If no nests are found, print message
 	if !found {
-		fmt.Println("No shiny notes in any nest yet. Add a note with: magpie <note>")
+		fmt.Println("No shiny notes in any nest yet.")
 	}
 	return nil
 }
 
 func renestCommand(nestFilePath string) error {
+	if !confirm("This action will delete current nest file. Proceed?") {
+		fmt.Println("Aborted. Nest kept.")
+		return nil
+	}
+
 	// Delete the nest file
 	err := os.Remove(nestFilePath)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
@@ -175,7 +182,7 @@ func pluckCommand(nestFilePath string) error {
 	}
 
 	if len(content) == 0 {
-		fmt.Println("No shiny notes in the nest to pluck. Add a note with: magpie <note>")
+		fmt.Println("No shiny notes in the nest to pluck.")
 		return nil
 	}
 
