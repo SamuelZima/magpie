@@ -29,7 +29,7 @@ func parseArgs() arguments {
 
 	flag.Usage = func() {
 		out := flag.CommandLine.Output()
-		fmt.Fprintf(out, "magpie - collects your shiny thoughts into a daily nest.\n\n")
+		fmt.Fprintf(out, "magpie - snatches your shiny thoughts into a daily nest.\n\n")
 		fmt.Fprintf(out, "Usage: magpie [-h|--help] [-v|--version] <note>|pluck|nest|renest|nests|abandon\n\n")
 		fmt.Fprintf(out, "Commands:\n")
 		fmt.Fprintf(out, "\t<note>\t\tSave a note, thought or idea to today's nest file\n")
@@ -189,10 +189,14 @@ func pluckCommand(nestFilePath string) error {
 
 	// Keep everything up to and including the newline before the last note, i.e. remove only last line/note from file
 	trimmed := strings.TrimSuffix(string(content), "\n")
-	kept := trimmed[:strings.LastIndex(trimmed, "\n")+1]
+	lastNewline := strings.LastIndex(trimmed, "\n")
+	plucked := trimmed[lastNewline+1:]
+	kept := trimmed[:lastNewline+1]
 	if err := os.WriteFile(nestFilePath, []byte(kept), 0600); err != nil {
 		return fmt.Errorf("ERROR: Unable to write nest file: %w", err)
 	}
+
+	fmt.Printf("Plucked:\n%s\n", plucked)
 	return nil
 }
 
@@ -206,10 +210,12 @@ func addNoteToNestCommand(nestFilePath string, note string) error {
 
 	// Append timestamped note to the nest file
 	timestamp := time.Now().Format(time.TimeOnly)
-	if _, err := nestFile.WriteString(timestamp + "  " + note + "\n"); err != nil {
+	savedNote := timestamp + "  " + note + "\n"
+	if _, err := nestFile.WriteString(savedNote); err != nil {
 		return fmt.Errorf("ERROR: Unable to append the nest file: %w", err)
 	}
 
+	fmt.Printf("Snatched:\n%s\n", savedNote)
 	return nil
 }
 

@@ -1,10 +1,10 @@
 # magpie
 
-Collects your shiny thoughts into a daily nest.
+Snatches your shiny thoughts into a daily nest.
 
 magpie is a small command-line tool for jotting down notes without leaving the terminal. 
 Type `magpie` followed by your note and it's saved with the time you added it. 
-Notes are grouped by day: each day gets its own nest, a plain text file, which you can view, trim or delete with a single command.
+Notes are grouped by day: each day gets its own nest, which is a plain text file that you can view, trim or delete with a single command.
 
 ## Usage
 
