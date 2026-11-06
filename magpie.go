@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var VERSION = "v0.8.0"
+var VERSION = "v1.0.0"
 
 const (
 	reset  = "\x1b[0m"

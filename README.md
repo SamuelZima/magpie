@@ -6,6 +6,12 @@ Magpie is a small command-line tool for jotting down notes without leaving the t
 Type `magpie` followed by your note and it's saved with the time you added it. 
 Notes are grouped by day: each day gets its own nest, which is a plain text file that you can view, trim or delete with a single command.
 
+## Install
+
+```
+go install github.com/SamuelZima/magpie@latest
+```
+
 ## Usage
 
 ```
