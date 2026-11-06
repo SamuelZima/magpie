@@ -63,6 +63,7 @@ func paint(colour string, text string) string {
 }
 
 func confirm(prompt string) bool {
+	// Setup reader from STDIN
 	reader := bufio.NewReader(os.Stdin)
 
 	// Prompt user for input
@@ -82,7 +83,7 @@ func confirm(prompt string) bool {
 }
 
 func createOrRetrieveNest() (string, error) {
-	// Create magpie dir, where the nest files will be stored
+	// Create or retrieve magpie dir under HOME dir, all nest files are stored in the magpie dir
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("ERROR: Unable to get user's home directory: %w", err)
@@ -92,7 +93,7 @@ func createOrRetrieveNest() (string, error) {
 		return "", fmt.Errorf("ERROR: Unable to create magpie directory: %w", err)
 	}
 
-	// Create today's nest file in the magpie dir if it doesn't exist already
+	// Create or retrieve today's nest file from the magpie dir
 	nestFilePath := magpieDir + time.Now().Format(time.DateOnly) + "-nest.txt"
 	nestFile, err := os.OpenFile(nestFilePath, os.O_CREATE|os.O_RDONLY, 0600)
 	if err != nil {
@@ -149,6 +150,7 @@ func nestsCommand(nestFilePath string) error {
 }
 
 func renestCommand(nestFilePath string) error {
+	// Ask for confirmation
 	if !confirm("This action will delete current nest file. Proceed?") {
 		fmt.Println(paint(dim, "Aborted. Nest kept."))
 		return nil
@@ -165,6 +167,7 @@ func renestCommand(nestFilePath string) error {
 }
 
 func abandonCommand(nestFilePath string) error {
+	// Ask for confirmation
 	if !confirm("This action will delete all nest files. Proceed?") {
 		fmt.Println(paint(dim, "Aborted. All nests kept."))
 		return nil
