@@ -206,7 +206,7 @@ func pluckCommand(nestFilePath string) error {
 	// Keep everything up to and including the newline before the last note, i.e. remove only last line/note from file
 	trimmed := strings.TrimSuffix(string(content), "\n")
 	lastNewline := strings.LastIndex(trimmed, "\n")
-	plucked := trimmed[lastNewline+1:]
+	plucked := trimmed[lastNewline+1:] + "\n"
 	kept := trimmed[:lastNewline+1]
 	if err := os.WriteFile(nestFilePath, []byte(kept), 0600); err != nil {
 		return fmt.Errorf("ERROR: Unable to write nest file: %w", err)
