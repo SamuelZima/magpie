@@ -212,7 +212,7 @@ func pluckCommand(nestFilePath string) error {
 		return fmt.Errorf("ERROR: Unable to write nest file: %w", err)
 	}
 
-	fmt.Printf("%s\n%s\n", paint(yellow, "Plucked:"), plucked)
+	fmt.Printf("%s\n%s", paint(yellow, "Plucked:"), plucked)
 	return nil
 }
 
@@ -231,7 +231,7 @@ func addNoteToNestCommand(nestFilePath string, note string) error {
 		return fmt.Errorf("ERROR: Unable to append the nest file: %w", err)
 	}
 
-	fmt.Printf("%s\n%s\n", paint(cyan, "Snatched:"), savedNote)
+	fmt.Printf("%s\n%s", paint(cyan, "Snatched:"), savedNote)
 	return nil
 }
 
