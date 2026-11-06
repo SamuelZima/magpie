@@ -12,7 +12,15 @@ import (
 	"time"
 )
 
-const VERSION = "v0.7.0"
+const VERSION = "v0.8.0"
+
+const (
+	reset  = "\x1b[0m"
+	dim    = "\x1b[2m"
+	red    = "\x1b[91m"
+	yellow = "\x1b[93m"
+	cyan   = "\x1b[96m"
+)
 
 type arguments struct {
 	help    bool
@@ -49,11 +57,16 @@ func parseArgs() arguments {
 	return args
 }
 
+func paint(colour string, text string) string {
+	// Build string with ANSI colour codes
+	return colour + text + reset
+}
+
 func confirm(prompt string) bool {
 	reader := bufio.NewReader(os.Stdin)
 
 	// Prompt user for input
-	fmt.Printf("%s [y/N]: ", prompt)
+	fmt.Printf("%s %s ", paint(yellow, prompt), paint(yellow, "[y/N]:"))
 	input, err := reader.ReadString('\n')
 	if err != nil {
 		return false
@@ -61,7 +74,7 @@ func confirm(prompt string) bool {
 
 	// Evaluate input -> only explicit yes evaluates to true
 	switch strings.ToLower(strings.TrimSpace(input)) {
-	case "y", "yes":
+	case "y", "yes", "Yes":
 		return true
 	default:
 		return false
@@ -98,7 +111,7 @@ func nestCommand(nestFilePath string) error {
 	}
 
 	if len(content) == 0 {
-		fmt.Println("No shiny notes in the nest yet.")
+		fmt.Println(paint(dim, "No shiny notes in the nest yet."))
 		return nil
 	}
 
@@ -125,19 +138,19 @@ func nestsCommand(nestFilePath string) error {
 			continue
 		}
 		found = true
-		fmt.Printf("======== %s ========\n%s\n", strings.TrimSuffix(filepath.Base(path), "-nest.txt"), content)
+		fmt.Printf("======== %s ========\n%s\n", paint(cyan, strings.TrimSuffix(filepath.Base(path), "-nest.txt")), content)
 	}
 
 	// If no nests are found, print message
 	if !found {
-		fmt.Println("No shiny notes in any nest yet.")
+		fmt.Println(paint(dim, "No shiny notes in any nest yet."))
 	}
 	return nil
 }
 
 func renestCommand(nestFilePath string) error {
 	if !confirm("This action will delete current nest file. Proceed?") {
-		fmt.Println("Aborted. Nest kept.")
+		fmt.Println(paint(dim, "Aborted. Nest kept."))
 		return nil
 	}
 
@@ -147,13 +160,13 @@ func renestCommand(nestFilePath string) error {
 		return fmt.Errorf("ERROR: Unable to delete nest file: %w", err)
 	}
 
-	fmt.Println("Renested.")
+	fmt.Println(paint(dim, "Renested."))
 	return nil
 }
 
 func abandonCommand(nestFilePath string) error {
 	if !confirm("This action will delete all nest files. Proceed?") {
-		fmt.Println("Aborted. All nests kept.")
+		fmt.Println(paint(dim, "Aborted. All nests kept."))
 		return nil
 	}
 
@@ -171,7 +184,7 @@ func abandonCommand(nestFilePath string) error {
 		}
 	}
 
-	fmt.Println("All nests abandoned.")
+	fmt.Println(paint(dim, "All nests abandoned."))
 	return nil
 }
 
@@ -183,7 +196,7 @@ func pluckCommand(nestFilePath string) error {
 	}
 
 	if len(content) == 0 {
-		fmt.Println("No shiny notes in the nest to pluck.")
+		fmt.Println(paint(dim, "No shiny notes in the nest to pluck."))
 		return nil
 	}
 
@@ -196,7 +209,7 @@ func pluckCommand(nestFilePath string) error {
 		return fmt.Errorf("ERROR: Unable to write nest file: %w", err)
 	}
 
-	fmt.Printf("Plucked:\n%s\n", plucked)
+	fmt.Printf("%s\n%s\n", paint(yellow, "Plucked:"), plucked)
 	return nil
 }
 
@@ -215,7 +228,7 @@ func addNoteToNestCommand(nestFilePath string, note string) error {
 		return fmt.Errorf("ERROR: Unable to append the nest file: %w", err)
 	}
 
-	fmt.Printf("Snatched:\n%s\n", savedNote)
+	fmt.Printf("%s\n%s\n", paint(cyan, "Snatched:"), savedNote)
 	return nil
 }
 
@@ -240,7 +253,7 @@ func main() {
 	// Create or retrieve the path to the nest file
 	nestFilePath, err := createOrRetrieveNest()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, paint(red, err.Error()))
 		os.Exit(1)
 	}
 
@@ -263,7 +276,7 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, paint(red, err.Error()))
 		os.Exit(1)
 	}
 }
