@@ -1,10 +1,16 @@
-# magpie
+# Magpie
+
+<p align="center">
+  <img src="./img/magpie.png" alt="Magpie" width="200">
+</p>
 
 **Snatches your shiny thoughts into a daily nest.**
 
-Magpie is a small command-line tool for jotting down notes without leaving the terminal. 
+Magpie is a small and simple command-line tool for jotting down notes without leaving the terminal. 
 Type `magpie` followed by your note and it's saved with the time you added it. 
 Notes are grouped by day: each day gets its own nest, which is a plain text file that you can view, trim or delete with a single command.
+
+![Magpie CLI Screenshot](./img/screenshot.png)
 
 ## Install
 
@@ -116,7 +122,7 @@ Anything else aborts with `Aborted. All nests kept.`
 
 Output is coloured with ANSI escape codes; errors are printed in red to stderr.
 
-## Where notes are stored
+## Where are the notes stored
 
 Nests are plain text files stored in the `HOME` directory and under `.magpie` directory, i.e. `~/.magpie/`.
 Each day gets its own nest. Every nest file is saved in the following format: `YYYY-MM-DD-nest.txt`
