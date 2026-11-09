@@ -24,6 +24,8 @@ tar -xzf magpie_*_darwin_arm64.tar.gz   # or linux_amd64, darwin_amd64, ...
 sudo mv magpie /usr/local/bin/
 ```
 
+> **macOS:** the binary isn't notarized, so a browser download is blocked by Gatekeeper ("could not be verified"). Clear the quarantine flag with `xattr -d com.apple.quarantine /usr/local/bin/magpie`, or download with `curl -LO <url>`, which avoids it.
+
 **Windows (PowerShell)**
 ```powershell
 Expand-Archive magpie_*_windows_amd64.zip -DestinationPath $HOME\magpie
