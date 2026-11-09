@@ -1,7 +1,7 @@
 # Magpie
 
 <p align="center">
-  <img src="./img/magpie.png" alt="Magpie" width="200">
+  <img src="./img/magpie.png" alt="Magpie" width="225">
 </p>
 
 **Snatches your shiny thoughts into a daily nest.**
@@ -14,8 +14,32 @@ Notes are grouped by day: each day gets its own nest, which is a plain text file
 
 ## Install
 
+### Prebuilt binaries
+
+Download the archive for your OS and CPU from [Releases](https://github.com/SamuelZima/magpie/releases), extract it and put `magpie` on your `PATH`.
+
+**macOS / Linux**
+```sh
+tar -xzf magpie_*_darwin_arm64.tar.gz   # or linux_amd64, darwin_amd64, ...
+sudo mv magpie /usr/local/bin/
 ```
+
+**Windows (PowerShell)**
+```powershell
+Expand-Archive magpie_*_windows_amd64.zip -DestinationPath $HOME\magpie
+# then add $HOME\magpie to your PATH
+```
+
+### With Go
+
+```sh
 go install github.com/SamuelZima/magpie@latest
+```
+
+Installs to `$(go env GOPATH)/bin` (usually `~/go/bin`). Make sure it's on your `PATH`:
+
+```sh
+export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
 ## Usage
